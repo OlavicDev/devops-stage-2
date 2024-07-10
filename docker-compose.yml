@@ -1,0 +1,50 @@
+    networks:
+      - web
+
+  backend:
+    build: ./backend
+    labels:
+      - "traefik.http.routers.backend.rule=Host(`13.52.221.238`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
+    networks:
+      - web
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: theghost
+      POSTGRES_PASSWORD: olavic
+      POSTGRES_DB: app
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - web
+
+  adminer:
+    image: adminer
+    ports:
+      - 8080:8080
+    networks:
+      - web
+
+  proxy:
+    image: jc21/nginx-proxy-manager:latest
+    ports:
+      - 80:80       # HTTP port mapping (container:host)
+      - 443:443     # HTTPS port mapping (container:host)
+      - 8090:81     # Proxy Manager port mapping (container:host)
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt   # Mounts letsencrypt directory from host to container
+    networks:
+      - web
+
+networks:
+  web:
+    driver: bridge
+
+volumes:
+  postgres_data:
+
+                                                                                                                                                
